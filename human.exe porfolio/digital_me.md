@@ -1,158 +1,182 @@
 # DIGITAL ME
-### An Interactive 3D Personal Universe
+### An Interactive 2D Personal Universe
 
-## 01. The Vision
+**Project:** DIGITAL ME  
+**Creator:** Aastha  
+**Experience:** Interactive 2D side-scrolling personal portfolio  
+**Development:** GitHub + Claude Code  
+**Deployment:** Vercel
 
-DIGITAL ME is an interactive personal portfolio built around a stylized 3D digital version of Aastha.
+---
 
-The experience should feel like entering a beautifully animated virtual world and meeting the person behind it.
+# 1. PROJECT VISION
 
-This is not a traditional portfolio.
+DIGITAL ME is an interactive digital universe representing my personality, interests, creativity, ambitions, experiences and work.
 
-Visitors should explore a virtual home, interact with objects, discover personality, watch the character move and eventually enter a creative studio to discover professional projects.
+It should not look or behave like a conventional portfolio website.
 
-The central idea:
+Visitors should feel as though they are entering a small interactive world where they can explore different spaces, interact with objects, discover information and meet my digital character.
 
-**Don't just show people who I am. Let them experience my world.**
+The experience should combine:
 
-## 02. The Character
+- A personal portfolio.
+- A 2D adventure-game environment.
+- Character-led storytelling.
+- Interactive objects and environments.
+- Playful animations and hidden details.
 
-Create a stylized 3D female character inspired by the supplied reference image and the user's appearance.
+The experience should be visually memorable while remaining easy to navigate.
 
-Visual characteristics:
-- Long dark hair.
+# 2. PERSONALITY AND CHARACTER
+
+The main character represents my digital identity.
+
+Personality traits:
+- Fun-loving.
+- Bubbly and expressive.
+- Curious.
+- Creative.
+- Ambitious.
+- Playful.
+- Interested in technology and experimentation.
+
+## Character reference
+
+Use the supplied Aastha Digital Avatar Character Board as the visual identity reference.
+
+Important identifying features:
+- Long, dark hair.
 - Black rectangular glasses.
 - Small nose ring.
-- Large expressive eyes.
-- Friendly facial expressions.
-- Stylish outfits.
-- Natural body proportions.
+- Warm complexion.
+- Expressive facial features.
 
-Style:
-Premium stylized 3D, combining animated-film character quality, fashion-doll aesthetics and modern simulation games.
+Maintain visual consistency across all character artwork and animations.
 
-Avoid childish cartoon styling and generic anime.
+The character should feel like a stylized illustrated version of me, not a generic cartoon character.
 
-## 03. Personality
+## Character animations
 
-The character represents someone who is:
+Plan for the following animations:
 
-- Fun-loving.
-- Bubbly.
-- Curious.
-- Expressive.
-- Ambitious.
-- Creative.
-- Playful.
-- Always exploring something new.
-
-Her personality should be communicated through animations, expressions, environmental details and interactive discoveries.
-
-## 04. The Environment
-
-The first version should be one beautifully designed virtual apartment.
-
-It contains:
-
-1. Main Room — welcome and personality.
-2. Creative Studio — professional projects.
-3. Curiosity Corner — interests and learning.
-4. Dream Corner — ambitions and possibilities.
-5. Wardrobe — outfits and customisation.
-
-## 05. Interactive Objects
-
-Objects should have meaningful interactions.
-
-| Object | Interaction |
-|---|---|
-| Mirror | Discover personality |
-| Bookshelf | Discover interests |
-| Camera | Explore photographs |
-| Headphones | Music and playful reactions |
-| Coffee mug | Humorous personality notes |
-| Laptop | Open professional projects |
-| Wardrobe | Change outfits |
-| Door | Explore another environment |
-
-## 06. Character Animations
-
-Required behaviours:
-
-- Idle breathing.
-- Blinking.
-- Looking around.
-- Greeting and waving.
-- Walking.
-- Sitting.
-- Working on laptop.
+- Idle.
+- Walking left.
+- Walking right.
+- Jumping.
+- Waving.
 - Thinking.
-- Happy reactions.
-- Dancing.
-- Farewell gestures.
+- Sitting.
+- Working.
+- Laughing.
+- Celebrating.
+- Interacting with objects.
 
-Animations should blend naturally.
+Use sprite sheets or equivalent 2D animation assets.
 
-## 07. Environmental Animations
+Do not substitute the final character with basic geometric shapes.
 
-- Moving curtains.
-- Swaying plants.
-- Floating dust particles.
-- Dynamic sunlight.
-- Glowing screens.
-- Opening drawers.
-- Interactive photographs.
-- Moving decorative objects.
+# 3. VISUAL DIRECTION
 
-## 08. Professional Projects
+The visual direction should be:
 
-The creative studio should showcase:
+- 2D illustrated.
+- Cozy and imaginative.
+- Playful but sophisticated.
+- Colorful without becoming visually overwhelming.
+- Premium, polished and expressive.
 
-1. ReviewSetu.
-2. The Lost Inn.
-3. ResolveAI.
-4. Dispute SLA Analytics.
+## Color palette
 
-Use actual project evidence and clearly communicate project status.
-
-Do not invent metrics or functionality.
-
-## 09. Visual Identity
-
-Suggested palette:
-
+Primary:
 - Lavender.
-- Blush pink.
-- Butter yellow.
+- Soft pink.
+- Cream.
 - Mint green.
-- Warm cream.
-- Deep charcoal accents.
+- Butter yellow.
 
-The design should feel sophisticated, expressive, warm and memorable.
+Supporting:
+- Warm beige.
+- Muted peach.
+- Dark brown.
+- Charcoal.
 
-## 10. Technical Direction
+Use layered environments, decorative details, subtle shadows, parallax backgrounds and smooth transitions.
 
-Evaluate:
+Avoid:
+- Generic corporate portfolio layouts.
+- Excessive text.
+- Childish cartoon aesthetics.
+- Overly dark environments.
+- Unnecessary visual clutter.
 
-- Three.js / React Three Fiber.
-- GSAP.
-- Blender.
-- GLB/GLTF character models.
-- Rigged skeletal animations.
-- Vercel deployment.
+# 4. WORLD STRUCTURE
 
-## 11. Quality Requirements
+The world consists of five interconnected spaces.
 
-- Responsive desktop and mobile.
-- Optimised 3D assets.
-- Smooth loading.
-- Accessible interactions.
-- Reduced-motion support.
-- Mobile fallback.
-- Good performance.
+## ROOM 01 — MY ROOM
 
-## 12. First Release Priority
+Purpose: Introduction and personality.
 
-Build one excellent avatar and one excellent room first.
+Content:
+- Who I am.
+- My personality.
+- My background.
+- My interests.
+- A short personal introduction.
 
-Do not build a huge virtual world before the character, environment and fundamental interactions work properly.
+Interactive objects:
+- Mirror: About me.
+- Photographs: Personal memories.
+- Bookshelf: Interests and learning.
+- Window: Transition to another environment.
+
+## ROOM 02 — CREATIVE STUDIO
+
+Purpose: Showcase my work and projects.
+
+Projects to include:
+
+1. The Lost Inn
+   - Luxury vacation rental website.
+   - Website and CMS development in progress.
+
+2. ResolveAI
+   - AI-assisted complaint intake and triage prototype.
+   - Human review and reliability-focused workflow.
+
+3. ReviewSetu
+   - Functional prototype.
+   - Not publicly launched.
+
+4. Dispute SLA Analytics
+   - Completed analytical project.
+   - Analysis of synthetic dispute data using Excel and SQL.
+
+Interactive objects:
+- Laptop: Project showcase.
+- Desk: Skills and tools.
+- Screens: Project demonstrations.
+- Notebook: Ideas and experiments.
+
+Do not invent project results or claim unfinished projects are completed.
+
+## ROOM 03 — CURIOSITY CORNER
+
+Purpose: Showcase learning and exploration.
+
+Possible content:
+- Artificial intelligence.
+- AI engineering.
+- Automation.
+- Finance and analytics.
+- Technology.
+- Creative experimentation.
+- Personal learning journey.
+
+Interactive objects:
+- Bookshelf.
+- Computer.
+- Research notes.
+- Learning board.
+
+## ROOM 04 — DREAM
