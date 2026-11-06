@@ -1,0 +1,9 @@
+{
+  "version": 1,
+  "frameWidth": 340,
+  "frameHeight": 500,
+  "originX": 170,
+  "originY": 476,
+  "note": "Illustrated sprite sheets go here. Any clip listed below replaces the code-drawn rig for that clip only. See docs/CHARACTER_ASSET_PLAN.md.",
+  "clips": {}
+}

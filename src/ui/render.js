@@ -50,6 +50,61 @@ export function blocksHTML(blocks, ctx = {}) {
           </figure>`;
         case 'pendingText':
           return pendingHTML(b.label);
+        case 'lead':
+          return `<p class="lead">${esc(b.text)}</p>`;
+        case 'section':
+          return `<section class="psec"><h3 class="psec__title">${esc(b.title)}</h3>${blocksHTML(b.blocks, ctx)}</section>`;
+        case 'facts':
+          return `<dl class="facts">${b.items.map(([k, v]) => `<div><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join('')}</dl>`;
+        case 'figure':
+          return `<figure class="figure"><img src="${esc(b.src)}" alt="${esc(b.alt)}" loading="lazy" /><figcaption>${esc(b.caption)}</figcaption></figure>`;
+        case 'expressions':
+          return `<ul class="moods">${b.items
+            .map((m) => `<li><img src="${esc(m.src)}" alt="" loading="lazy" width="70" height="70" /><span>${esc(m.label)}</span></li>`)
+            .join('')}</ul>`;
+        case 'projectLink':
+          return projectLinkHTML(b.project, b.why, ctx);
+        case 'topics':
+          return `<div class="topics">${b.items
+            .map(
+              (t) => `<details class="topic">
+                <summary><span class="topic__title">${esc(t.title)}</span><span class="topic__count">${
+                  t.seen.length ? `${t.seen.length} in my work` : t.note ? 'this world' : 'pending'
+                }</span></summary>
+                <div class="topic__body">
+                  ${t.seen.map(([pid, why]) => projectLinkHTML(pid, why, ctx)).join('')}
+                  ${t.note ? `<p>${esc(t.note)}</p>` : ''}
+                  ${!t.seen.length && !t.note ? pendingHTML('Notes on this topic') : ''}
+                </div>
+              </details>`,
+            )
+            .join('')}</div>`;
+        case 'entries': {
+          const items = b.items || [];
+          const filled = items.map((e) => `<li class="entry"><strong>${esc(e.title)}</strong>${e.text ? `<p>${esc(e.text)}</p>` : ''}</li>`);
+          const empty = items.length ? [] : Array.from({ length: b.slots || 3 }, (_, i) => `<li class="entry entry--pending"><span aria-hidden="true">✎</span> ${esc(b.label)} ${i + 1} · to be added</li>`);
+          return `<ul class="entries">${filled.join('')}${empty.join('')}</ul>${items.length ? '' : `<p class="pending-hint">${esc(PENDING_COPY.text)}</p>`}`;
+        }
+        case 'gallery': {
+          const photos = b.photos || [];
+          const pend = Math.max(0, (b.slots || 4) - photos.length);
+          return `<ul class="gallery${b.polaroid ? ' gallery--polaroid' : ''}">
+            ${photos
+              .map(
+                (ph) => `<li><a href="${esc(ph.src)}" target="_blank" rel="noopener"><img src="${esc(ph.src)}" alt="${esc(ph.alt)}" loading="lazy" /></a>
+                  <span class="gallery__cap">${esc(ph.caption || '')}${ph.date ? ` · ${esc(ph.date)}` : ''}</span></li>`,
+              )
+              .join('')}
+            ${Array.from({ length: pend }, () => `<li class="gallery__pending"><span class="gallery__frame" aria-hidden="true"></span><span class="gallery__cap">Photo pending</span></li>`).join('')}
+          </ul>${photos.length ? '' : `<p class="pending-hint">${esc(PENDING_COPY.text)}</p>`}`;
+        }
+        case 'timeline': {
+          const items = b.items || [];
+          const rows = items.length
+            ? items.map((m) => `<li><span class="tl__date">${esc(m.date)}</span><strong>${esc(m.title)}</strong>${m.text ? `<p>${esc(m.text)}</p>` : ''}</li>`)
+            : Array.from({ length: b.slots || 3 }, () => `<li class="tl--pending"><span class="tl__date">—</span><strong>Milestone to be added</strong></li>`);
+          return `<ol class="timeline">${rows.join('')}</ol>${items.length ? '' : `<p class="pending-hint">${esc(PENDING_COPY.text)}</p>`}`;
+        }
         case 'projects':
           return `<div class="projects">${PROJECTS.map(
             (p) => `
@@ -64,6 +119,30 @@ export function blocksHTML(blocks, ctx = {}) {
       }
     })
     .join('');
+}
+
+/** True when a panel has no real content yet (the character "thinks" instead of reaching). */
+export function isPendingPanel(id) {
+  const panel = PANELS[id];
+  if (!panel || panel.project) return false;
+  if (panel.pending) return true;
+  const empty = (b) =>
+    b.type === 'pendingText' ||
+    (b.type === 'entries' && !(b.items || []).length) ||
+    (b.type === 'gallery' && !(b.photos || []).length) ||
+    (b.type === 'timeline' && !(b.items || []).length);
+  const real = panel.blocks.filter((b) => b.type !== 'note' && b.type !== 'p');
+  return real.length > 0 && real.every(empty);
+}
+
+/** A link to one project: a button inside the world, an in-page jump in list view. */
+function projectLinkHTML(pid, why, ctx) {
+  const p = PROJECT_BY_ID[pid];
+  if (!p) return '';
+  const inner = `<span class="plink__title">${esc(p.title)} →</span>${why ? `<span class="plink__why">${esc(why)}</span>` : ''}`;
+  return ctx.projectLinks
+    ? `<button type="button" class="plink" data-project="${esc(pid)}">${inner}</button>`
+    : `<a class="plink" href="#list" data-scroll="project-${esc(pid)}">${inner}</a>`;
 }
 
 /** Resolve a panel id to { title, kicker, html, portrait }. */

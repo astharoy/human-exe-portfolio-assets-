@@ -1,8 +1,8 @@
 import Phaser from 'phaser';
-import { Player } from './Player.js';
+import { Player, spriteClipsFrom } from './Player.js';
 import { ROOMS, ROOM_BY_ID, DISCOVERABLES } from '../world/rooms.js';
 import { OBJECTS, paintTexture, paintRoom, paintSky, FLOOR_Y, WORLD_H } from '../world/paint.js';
-import { PANELS } from '../content/content.js';
+import { isPendingPanel } from '../ui/render.js';
 import { state, persist, bus, touchInput } from '../state.js';
 
 const GROUND = FLOOR_Y + 26; // where feet rest on the floor
@@ -25,6 +25,19 @@ export class WorldScene extends Phaser.Scene {
     this.load.image('poster-lostinn', '/evidence/posters/lostinn-cms.jpg');
     this.load.image('poster-reviewsetu', '/evidence/posters/reviewsetu.jpg');
     this.load.image('ev-resolveai', '/evidence/resolveai-automation-workflow.png');
+    // Illustrated character sprite sheets (optional): any clip listed in the
+    // manifest replaces the code-drawn rig for that clip only.
+    if (!this.cache.json.exists('char-manifest')) {
+      this.load.json('char-manifest', '/character/sprites/manifest.json');
+      this.load.once('filecomplete-json-char-manifest', (key, type, m) => {
+        for (const [clip, def] of Object.entries(m?.clips || {})) {
+          this.load.spritesheet(`char-${clip}`, `/character/sprites/${def.sheet}`, {
+            frameWidth: m.frameWidth || 340,
+            frameHeight: m.frameHeight || 500,
+          });
+        }
+      });
+    }
   }
 
   create() {
@@ -43,8 +56,9 @@ export class WorldScene extends Phaser.Scene {
     this.physics.add.existing(floor, true);
 
     for (const def of room.objects) this.buildObject(def);
+    if (!state.reducedMotion) this.makeAmbient(room);
 
-    this.player = new Player(this, this.spawnX, GROUND - 2);
+    this.player = new Player(this, this.spawnX, GROUND - 2, spriteClipsFrom(this));
     this.physics.add.collider(this.player.sprite, floor);
     this.physics.add.collider(this.player.sprite, this.platforms, (pl, zone) => this.onPlatform(zone));
 
@@ -65,13 +79,28 @@ export class WorldScene extends Phaser.Scene {
       action: [kb.addKey(K.E, false), kb.addKey(K.ENTER, false)],
     };
     this.prevTouch = { jump: false, action: false };
+    // Queue presses from the keydown event itself: polling JustDown misses a tap
+    // whose key-down and key-up land in the same frame (fast taps, slow devices).
+    this.pending = { jump: false, action: false };
+    const queue = (name) => (e) => {
+      if (!e.repeat && !state.uiOpen) this.pending[name] = true;
+    };
+    const keyEvents = [...['E', 'ENTER'].map((k) => [k, queue('action')]), ...['SPACE', 'UP', 'W'].map((k) => [k, queue('jump')])];
+    keyEvents.forEach(([k, fn]) => kb.on(`keydown-${k}`, fn));
+    this.events.once('shutdown', () => keyEvents.forEach(([k, fn]) => kb.off(`keydown-${k}`, fn)));
 
     // click the character to say hi
     this.player.sprite.setInteractive({ useHandCursor: true, pixelPerfect: false });
     this.player.sprite.on('pointerdown', () => {
-      if (state.uiOpen) return;
-      this.player.play('wave');
-      bus.emit('say', { text: 'Hi! Anything that glows can be opened.', ms: 2600 });
+      if (state.uiOpen || this.player.busy) return;
+      this.hiCount = (this.hiCount || 0) + 1;
+      if (this.hiCount % 2) {
+        this.player.play('wave');
+        bus.emit('say', { text: 'Hi! Anything that glows can be opened.', ms: 2600 });
+      } else {
+        this.player.play('laugh');
+        bus.emit('say', { text: 'Haha — that tickles!', ms: 1800 });
+      }
     });
 
     // events from the DOM UI
@@ -86,7 +115,7 @@ export class WorldScene extends Phaser.Scene {
     const first = !state.visitedRooms.has(room.id);
     state.visitedRooms.add(room.id);
     persist();
-    if (!state.reducedMotion) cam.fadeIn(320, 251, 243, 228);
+    if (!state.reducedMotion && this.arrivedBy === 'start') cam.fadeIn(320, 251, 243, 228);
     bus.emit('room', { room, first, arrivedBy: this.arrivedBy });
     if (first && this.arrivedBy !== 'start') {
       this.time.delayedCall(450, () => bus.emit('say', { text: room.intro, ms: 4200 }));
@@ -128,6 +157,45 @@ export class WorldScene extends Phaser.Scene {
     this.cameras.main.setBackgroundColor(room.sky.colors[room.sky.colors.length - 1]);
   }
 
+  /** Slow floating dust motes or leaves, one style per room. */
+  makeAmbient(room) {
+    const a = room.ambient;
+    if (!a) return;
+    const key = `amb-${a.kind}`;
+    if (!this.textures.exists(key)) {
+      paintTexture(this, key, 14, 14, 2, (ctx) => {
+        if (a.kind === 'leaves') {
+          ctx.fillStyle = '#ffffff';
+          ctx.beginPath();
+          ctx.ellipse(7, 7, 3, 6, 0.6, 0, Math.PI * 2);
+          ctx.fill();
+        } else {
+          const g = ctx.createRadialGradient(7, 7, 0, 7, 7, 7);
+          g.addColorStop(0, 'rgba(255,255,255,1)');
+          g.addColorStop(1, 'rgba(255,255,255,0)');
+          ctx.fillStyle = g;
+          ctx.fillRect(0, 0, 14, 14);
+        }
+      });
+    }
+    const leaves = a.kind === 'leaves';
+    this.add
+      .particles(0, 0, key, {
+        x: { min: 0, max: room.width },
+        y: leaves ? { min: -10, max: 40 } : { min: 120, max: FLOOR_Y - 20 },
+        lifespan: leaves ? 9000 : 6000,
+        speedX: leaves ? { min: -20, max: 25 } : { min: -6, max: 6 },
+        speedY: leaves ? { min: 30, max: 55 } : { min: -10, max: -3 },
+        rotate: leaves ? { min: 0, max: 360 } : 0,
+        scale: leaves ? { min: 0.5, max: 0.9 } : { min: 0.3, max: 0.8 },
+        alpha: { onEmit: () => 0, onUpdate: (p, k, t) => Math.sin(t * Math.PI) * (leaves ? 0.7 : 0.55) },
+        tint: a.color,
+        frequency: leaves ? 900 : 380,
+        quantity: 1,
+      })
+      .setDepth(leaves ? 45 : 6);
+  }
+
   makeDreamSparkles(W) {
     if (!this.textures.exists('sparkle')) {
       paintTexture(this, 'sparkle', 12, 12, 2, (ctx) => {
@@ -166,8 +234,8 @@ export class WorldScene extends Phaser.Scene {
     const y = def.y ?? OBJ_GROUND;
     const [sx, sy] = def.scale || [1, 1];
     const img = this.add.image(def.x, y, key).setOrigin(0.5, 1).setScale(sx / OBJ_R, sy / OBJ_R);
-    img.setDepth(def.kind === 'window' || def.kind === 'console' ? 4 : 10);
-    const obj = { def, img, w: w * sx, h: h * sy, x: def.x, y, interactive: !!(def.panel || def.door) };
+    img.setDepth(def.depth ?? (def.kind === 'window' || def.kind === 'console' ? 4 : 10));
+    const obj = { def, img, w: w * sx, h: h * sy, x: def.x, y, interactive: !!(def.panel || def.door || def.sit) };
 
     if (def.evidence) this.placeEvidence(obj, def.evidence);
 
@@ -185,6 +253,10 @@ export class WorldScene extends Phaser.Scene {
     if (obj.interactive) {
       img.setInteractive({ useHandCursor: true });
       img.on('pointerdown', () => this.tapObject(obj));
+    }
+    if (def.kind === 'plant' && !state.reducedMotion) {
+      // leaves sway gently from the pot (origin is bottom-centre)
+      this.tweens.add({ targets: img, angle: { from: -1.2, to: 1.2 }, duration: 2800 + (def.x % 900), yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
     }
     if (def.kind === 'mobile' && !state.reducedMotion) {
       this.tweens.add({ targets: img, angle: { from: -2, to: 2 }, duration: 2600, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
@@ -235,14 +307,14 @@ export class WorldScene extends Phaser.Scene {
   /* ---------------------------------------------------------------- */
   readInput() {
     const down = (arr) => arr.some((k) => k.isDown);
-    const just = (arr) => arr.some((k) => Phaser.Input.Keyboard.JustDown(k));
     const ui = state.uiOpen;
     const jt = touchInput.jump && !this.prevTouch.jump;
     const at = touchInput.action && !this.prevTouch.action;
     this.prevTouch = { jump: touchInput.jump, action: touchInput.action };
-    // JustDown must be read every frame to reset, even when the UI is open
-    const jumpPressed = just(this.keys.jump) || jt;
-    const actionPressed = just(this.keys.action) || at;
+    const jumpPressed = this.pending.jump || jt;
+    const actionPressed = this.pending.action || at;
+    this.pending.jump = false;
+    this.pending.action = false;
     if (ui) return { left: false, right: false, jumpPressed: false, actionPressed: false };
     return {
       left: down(this.keys.left) || touchInput.left,
@@ -356,10 +428,26 @@ export class WorldScene extends Phaser.Scene {
       this.time.delayedCall(delay, () => this.goTo(def.door.to, def.door.spawn, def.id === 'window' ? 'window' : 'door'));
       return;
     }
-    const panel = PANELS[def.panel];
-    const pending = panel?.pending;
+    if (def.sit) {
+      // a seat: walk to it and sit until the visitor moves again
+      const sitDown = () => {
+        p.face(1);
+        p.play('sit', { hold: true });
+        if (def.say) bus.emit('say', { text: def.say, ms: 2600 });
+      };
+      if (Math.abs(p.x - def.x) > 10) p.walkTo(def.x, sitDown);
+      else sitDown();
+      return;
+    }
+    if (def.seat !== undefined && Math.abs(p.x - def.seat) > 10) {
+      // e.g. the laptop: sit down at the desk first, then open
+      p.walkTo(def.seat, () => this.interact(obj));
+      return;
+    }
+    const pending = isPendingPanel(def.panel);
     const clip = def.clip || (pending ? 'think' : 'interact');
-    p.play(clip, { hold: clip === 'think' });
+    if (def.seat !== undefined) p.face(1);
+    p.play(clip, { hold: clip === 'think' || clip === 'work' });
     p.busy = true;
     const isNew = !state.discovered.has(def.id);
     state.discovered.add(def.id);
@@ -433,8 +521,9 @@ export class WorldScene extends Phaser.Scene {
     const go = () => this.scene.restart({ roomId, spawnX: spawnX ?? ROOM_BY_ID[roomId].spawn, arrivedBy });
     if (state.reducedMotion) go();
     else {
-      this.cameras.main.fadeOut(280, 251, 243, 228);
-      this.cameras.main.once('camerafadeoutcomplete', go);
+      // the DOM curtain (hud.js) covers the switch and names the next room
+      bus.emit('leaving', { room: ROOM_BY_ID[roomId] });
+      this.time.delayedCall(360, go);
     }
   }
 }

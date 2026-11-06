@@ -5,7 +5,7 @@ const rows = document.getElementById('rows');
 const SCALE = 1.2;
 const clips = [
   ['idle', {}], ['walk', {}], ['jump', { vy: -500 }], ['jump', { vy: 300 }], ['land', {}],
-  ['wave', {}], ['think', {}], ['interact', {}], ['celebrate', {}],
+  ['wave', {}], ['think', {}], ['interact', {}], ['celebrate', {}], ['sit', {}], ['work', {}], ['laugh', {}],
 ];
 const live = [];
 for (const [name, opts] of clips) {

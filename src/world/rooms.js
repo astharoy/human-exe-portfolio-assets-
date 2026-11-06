@@ -16,6 +16,10 @@
 import { C } from '../palette.js';
 import { FLOOR_Y } from './paint.js';
 
+// keep in sync with WorldScene: feet on the floor, furniture slightly behind
+const GROUND = FLOOR_Y + 26;
+const OBJ_GROUND = FLOOR_Y + 14;
+
 const wood = {
   floor: '#c9a27c', floorHi: '#d8b58f', floorLine: 'rgba(90,61,49,0.18)',
 };
@@ -35,6 +39,7 @@ export const ROOMS = [
     windowArch: true,
     rugs: [[1130, 420, C.lavender, C.lavenderSoft]],
     spawn: 260,
+    ambient: { kind: 'motes', color: 0xfff1d6 },
     objects: [
       { id: 'door-home-studio', kind: 'door', x: 1880, door: { to: 'studio', spawn: 200 }, label: 'Creative Studio', opts: { color: C.lavenderDeep, plaque: '02' } },
       { id: 'lamp-1', kind: 'lamp', x: 90 },
@@ -60,11 +65,16 @@ export const ROOMS = [
     windows: [{ x: 2230, y: 120, w: 240, h: 230 }],
     rugs: [[560, 520, C.mint, C.mintSoft], [1520, 760, C.butter, C.butterSoft]],
     spawn: 200,
+    ambient: { kind: 'motes', color: 0xffffff },
     objects: [
       { id: 'door-studio-home', kind: 'door', x: 90, door: { to: 'my-room', spawn: 1760 }, label: 'My Room', opts: { color: C.pinkDeep, plaque: '01' } },
-      { id: 'desk', kind: 'desk', x: 560, panel: 'desk', label: 'Desk · Skills & tools', hotspot: -110, platform: { w: 370, top: 0 } },
-      { id: 'laptop', kind: 'laptop', x: 650, y: FLOOR_Y - 130, panel: 'laptop', label: 'Laptop · Project showcase', reach: 'floor' },
+      { id: 'desk', kind: 'desk', x: 560, panel: 'desk', label: 'Desk · Skills & tools', hotspot: 120, platform: { w: 370, top: 0 } },
+      // she sits on the chair and works while the project showcase is open
+      { id: 'chair', kind: 'chair', x: 396, y: GROUND, depth: 40 },
+      { id: 'laptop', kind: 'laptop', x: 470, y: OBJ_GROUND - 100, panel: 'laptop', label: 'Laptop · Project showcase', reach: 'floor', seat: 402, clip: 'work' },
       { id: 'plant-s1', kind: 'plant', x: 860 },
+      { id: 'shelf-s1', kind: 'shelf', x: 560, y: 360, depth: 3 },
+      { id: 'poster-s1', kind: 'poster', x: 860, y: 340, depth: 3, opts: { a: C.mint, b: C.lavender, c: C.butter, tilt: 0.04 } },
       { id: 'console', kind: 'console', x: 1520 },
       { id: 'screen-lostinn', kind: 'monitor', x: 1176, y: 330, panel: 'screen-lostinn', label: 'Screen · The Lost Inn', reach: 'floor', evidence: { image: 'poster-lostinn' }, opts: { led: C.butter } },
       { id: 'screen-resolveai', kind: 'monitor', x: 1406, y: 330, panel: 'screen-resolveai', label: 'Screen · ResolveAI', reach: 'floor', evidence: { image: 'ev-resolveai' }, opts: { led: C.mint } },
@@ -88,6 +98,7 @@ export const ROOMS = [
     windowArch: true,
     rugs: [[820, 460, C.peach, C.butterSoft]],
     spawn: 200,
+    ambient: { kind: 'leaves', color: 0x9fd0b3 },
     objects: [
       { id: 'door-curio-studio', kind: 'door', x: 90, door: { to: 'studio', spawn: 2380 }, label: 'Creative Studio', opts: { color: C.lavenderDeep, plaque: '02' } },
       { id: 'curio-bookshelf', kind: 'bookshelf', x: 400, panel: 'curio-bookshelf', label: 'Bookshelf · What I’m learning', platform: { w: 210, top: 6 }, scale: [1.2, 1.15], opts: { seed: 9, wood: C.peachDeep } },
@@ -136,10 +147,11 @@ export const ROOMS = [
     windows: [{ x: 1960, y: 130, w: 240, h: 230 }],
     rugs: [[1100, 640, C.pink, C.pinkSoft]],
     spawn: 200,
+    ambient: { kind: 'motes', color: 0xffe2c8 },
     objects: [
       { id: 'door-memory-dream', kind: 'door', x: 90, door: { to: 'dream', spawn: 2180 }, label: 'Dream Space', opts: { color: C.night, plaque: '04' } },
       { id: 'memory-frames', kind: 'frames', x: 520, y: 380, panel: 'memory-frames', label: 'Framed moments', reach: 'floor' },
-      { id: 'bench', kind: 'bench', x: 880, platform: { w: 230, top: 0 } },
+      { id: 'bench', kind: 'bench', x: 880, y: GROUND, sit: true, label: 'Bench · Sit for a moment', say: 'A good spot to look at the wall.' },
       { id: 'memory-polaroids', kind: 'polaroids', x: 1200, y: 260, panel: 'memory-polaroids', label: 'Polaroid string', reach: 'floor' },
       { id: 'memory-board', kind: 'board', x: 1560, y: 400, panel: 'memory-board', label: 'Pin board', reach: 'floor', opts: { seed: 21, surface: '#e9d3c0' } },
       { id: 'window-m', kind: 'window', x: 1960, y: 130 + 230, opts: { curtain: C.peach } },

@@ -51,10 +51,48 @@
 - The Curiosity Corner's topics are the spec's "possible content" list, labelled "Draft topics from the project plan, awaiting confirmation".
 - The intro text uses the persona traits from the spec and the character sheet. All other personal content is pending.
 
-## 5. Remaining work and blockers
+## 5. Deployment fix (between phases)
 
-1. **Spec sections for Room 04 and Room 05 (and anything after).** Needed to define the Dream Space and Memory Wall content.
-2. **Personal content:** introduction and background, memories/photos, interests, learning notes, ideas notebook, ReviewSetu description.
-3. **Illustrated sprite frames** to replace the interim rig, plus the Sitting, Working and Laughing animations (see the asset plan).
-4. **Project links** (live sites or repos), if any should be public.
-5. **Not verified:** real iOS Safari or Android devices (only emulated), real screen readers, and performance on low-end phones. Phaser is about 340 KB gzipped; the videos load only when played (`preload="none"`).
+Vercel's first production deployment built `main` (`267e3bc`), which holds only the original assets: no `package.json` or `index.html`, so every URL returned 404. The app lives on `claude/tender-gauss-rgzlpn`. The build, output directory, asset paths and `vercel.json` were verified and needed no change. The README now lists the exact Vercel settings. To fix production, merge the branch into `main` or set Vercel's production branch to it.
+
+## 6. Phase 2: character upgrade, content completion, polish
+
+**Character**
+- Rig v2: redrawn with shading and closer proportions to the sheet's side and front full-body views. Same joint API, so movement, collisions and interactions are unchanged.
+- New clips: **sit**, **work**, **laugh** (11 clips in total, covering all 10 requested states).
+- Sprite pipeline: `public/character/sprites/manifest.json`. Illustrated sheets replace the rig one clip at a time, with a fixed 340 × 500 frame contract. Tested with a served test sheet.
+- The rig redraws at 24 fps instead of every frame.
+- The character sheet stays the source of truth. The rig is interim (see CHARACTER_ASSET_PLAN.md).
+
+**Rooms and interactions**
+- Studio: a lower desk, a chair, and the laptop showcase now has her **sit and work** while it's open. Shelf and poster decor fill the empty wall.
+- Memory Wall: the bench is a seat (she sits until you move).
+- Clicking the character alternates wave and laugh.
+- Pending objects trigger the **think** animation.
+- Polish: a curtain transition naming the next room, swaying plants, room-specific ambient particles (dust motes, or falling leaves in the Curiosity Corner), and prompts that step aside while she's speaking.
+
+**Content** (`src/content/content.js`, all editable)
+- Every project panel has name, status, description, evidence, "What the evidence shows", technologies, and "What it demonstrates".
+  - Lost Inn and ReviewSetu descriptions were written from frames of the walkthrough videos.
+  - Technologies are listed only for ResolveAI (screenshot) and Dispute SLA (case study). The other two say "Not listed in the evidence yet".
+- My Room mirror: confirmed traits, a summary of what's been built, the sheet's nine expressions and five outfits, and style. Background is still pending.
+- Curiosity Corner: an expandable explorer for the seven spec topics, each linking to the project evidence where that area appears. A computer panel covers DIGITAL ME itself. Research notes and learning journey are editable and pending.
+- Dream Space: editable Ambitions, Future plans and Ideas lists (empty, shown as pending slots).
+- Memory Wall: a photo gallery (6 frames), a polaroid strip (5) and a milestones timeline (4). All pending; no photos or memories have been supplied.
+
+**Bug fixed during testing:** a key tap whose key-down and key-up landed in the same frame was lost (Phaser `JustDown` polling), which could happen on slow devices. Presses are now queued from the key-down event itself.
+
+**Tests** (`tests/playthrough.cjs`, 64 checks), run against the production build served as static files:
+- Two consecutive full runs passed 64/64 after the key fix.
+- Coverage: all 11 clips; walking and jumping onto a platform; every door and the window; the map; every interactive object in all five rooms; the laptop sit-and-work flow; all four project panels and their sections; both videos playing; the workflow image loading; 91.2% shown; topic → project links; the bench.
+- The three served evidence files were verified byte-for-byte (SHA-256) against the originals in `human.exe porfolio/`.
+- Also covered: the sprite pipeline and its rig fallback; Calm mode (OS reduced-motion); an emulated iPhone 13 with touch walking and tap-to-open; the list view with in-page project links; zero console errors.
+- Earlier runs had intermittent failures. One test wait was too short for a loaded browser (now it polls). The other was the key-tap bug above.
+
+## 7. Remaining work and blockers
+
+1. **Illustrated sprite frames** to replace the interim rig (frame list in CHARACTER_ASSET_PLAN.md).
+2. **Personal content:** background and personal story, interests, photos, small moments, milestones, ambitions, plans, ideas, research notes, learning journey. All slots exist and are editable.
+3. **Technologies for The Lost Inn and ReviewSetu:** add them once evidence or your confirmation exists.
+4. **Vercel production branch** (see section 5).
+5. **Not verified:** real iOS/Android devices (only emulated), real screen readers, performance on low-end phones.

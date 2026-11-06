@@ -2,41 +2,50 @@ import Phaser from 'phaser';
 import { renderPose, RIG } from '../character/rig.js';
 import { CLIPS, CLIP_LENGTH } from '../character/poses.js';
 
-const TEX_SCALE = 2; // rig is rendered at 2× and displayed at 0.5×
+export const TEX_SCALE = 2; // character frames are 2× and displayed at 0.5×
 const SPEED = 270;
 const JUMP_V = -900; // apex ≈ 200 world units with gravity 2000
+const RIG_FPS = 24; // the rig redraws "on ones" at 24 fps, like hand-drawn animation
 
 /**
- * The playable character. Physics come from an Arcade sprite; the look comes
- * from the articulated rig, re-rendered into a canvas texture every frame.
+ * The playable character. Physics come from an Arcade sprite.
+ *
+ * The look comes from one of two sources, chosen per animation clip:
+ *  1. Sprite frames listed in /character/sprites/manifest.json (final art), or
+ *  2. the layered rig (src/character/rig.js), redrawn into a canvas texture.
+ * Clips without sprite frames fall back to the rig, so illustrated frames
+ * can be delivered one clip at a time.
  */
 export class Player {
-  constructor(scene, x, y) {
+  constructor(scene, x, y, spriteClips = {}) {
     this.scene = scene;
-    const key = 'player-rig';
-    if (scene.textures.exists(key)) scene.textures.remove(key);
-    this.tex = scene.textures.createCanvas(key, RIG.width * TEX_SCALE, RIG.height * TEX_SCALE);
+    this.rigKey = 'player-rig';
+    if (scene.textures.exists(this.rigKey)) scene.textures.remove(this.rigKey);
+    this.tex = scene.textures.createCanvas(this.rigKey, RIG.width * TEX_SCALE, RIG.height * TEX_SCALE);
     this.ctx = this.tex.getContext();
+    this.spriteClips = spriteClips;
 
-    this.sprite = scene.physics.add.sprite(x, y, key);
+    this.sprite = scene.physics.add.sprite(x, y, this.rigKey);
     this.sprite.setOrigin(RIG.originX / RIG.width, RIG.originY / RIG.height);
     this.sprite.setScale(1 / TEX_SCALE);
     this.sprite.setDepth(50);
     const body = this.sprite.body;
     // body in texture pixels (pre-scale)
-    body.setSize(40 * TEX_SCALE, 160 * TEX_SCALE);
-    body.setOffset((RIG.width * TEX_SCALE - 40 * TEX_SCALE) / 2, RIG.originY * TEX_SCALE - 160 * TEX_SCALE);
+    body.setSize(40 * TEX_SCALE, 170 * TEX_SCALE);
+    body.setOffset((RIG.width * TEX_SCALE - 40 * TEX_SCALE) / 2, RIG.originY * TEX_SCALE - 170 * TEX_SCALE);
     this.sprite.setCollideWorldBounds(true);
 
     this.clip = 'idle';
     this.clipT = 0;
-    this.override = null; // one-shot or held clip (wave/think/interact/celebrate)
+    this.override = null; // one-shot or held clip
     this.overrideHold = false;
     this.wasAirborne = false;
     this.facing = 1;
     this.autoTarget = null; // tap-to-walk
     this.locked = false; // computed each frame by the scene
     this.busy = false; // mid-interaction
+    this.lastTick = '';
+    this.source = 'rig';
   }
 
   get x() {
@@ -93,8 +102,7 @@ export class Player {
     body.setVelocityX(move * SPEED);
     if (move) {
       this.face(move);
-      if (this.override && !this.overrideHold) this.release();
-      if (this.overrideHold) this.release();
+      if (this.override) this.release();
     }
 
     // choose clip
@@ -118,14 +126,55 @@ export class Player {
       this.release();
     }
 
-    const pose = CLIPS[this.clip](this.clipT, g, { vy: body.velocity.y });
+    this.draw(g, body.velocity.y);
+    this.sprite.setFlipX(this.facing < 0);
+  }
+
+  draw(g, vy) {
+    const sc = this.spriteClips[this.clip];
+    if (sc) {
+      // illustrated sprite frames
+      let f;
+      if (this.clip === 'jump') f = Math.min(sc.frames - 1, vy < -250 ? 0 : vy < 150 ? 1 : 2);
+      else {
+        const n = Math.floor(this.clipT * sc.fps);
+        f = sc.loop ? n % sc.frames : Math.min(n, sc.frames - 1);
+      }
+      if (this.sprite.texture.key !== sc.key || this.sprite.frame.name !== f) this.sprite.setTexture(sc.key, f);
+      this.source = 'sprite';
+      return;
+    }
+    if (this.sprite.texture.key !== this.rigKey) this.sprite.setTexture(this.rigKey);
+    this.source = 'rig';
+    // redraw only when the 24 fps tick, clip or jump phase changes
+    const tick = `${this.clip}:${Math.floor(this.clipT * RIG_FPS)}:${Math.floor(g * RIG_FPS)}:${this.clip === 'jump' ? Math.round(vy / 100) : ''}`;
+    if (tick === this.lastTick) return;
+    this.lastTick = tick;
+    const q = (t) => Math.floor(t * RIG_FPS) / RIG_FPS;
+    const pose = CLIPS[this.clip](q(this.clipT), q(g), { vy });
     renderPose(this.ctx, pose, { scale: TEX_SCALE, facing: 1 });
     this.tex.refresh();
-    this.sprite.setFlipX(this.facing < 0);
   }
 
   /** Top of the head in world coordinates (for speech bubbles). */
   headTop() {
-    return { x: this.sprite.x, y: this.sprite.y - 190 };
+    const seated = this.clip === 'sit' || this.clip === 'work';
+    return { x: this.sprite.x, y: this.sprite.y - (seated ? 165 : 210) };
   }
+}
+
+/**
+ * Read the sprite manifest (already in the Phaser JSON cache) and return the
+ * clips whose sheets loaded, as { clip: { key, frames, fps, loop } }.
+ */
+export function spriteClipsFrom(scene) {
+  const m = scene.cache.json.get('char-manifest');
+  const out = {};
+  if (!m?.clips) return out;
+  for (const [clip, def] of Object.entries(m.clips)) {
+    const key = `char-${clip}`;
+    if (!scene.textures.exists(key) || !CLIPS[clip]) continue;
+    out[clip] = { key, frames: def.frames, fps: def.fps || 12, loop: def.loop !== false };
+  }
+  return out;
 }

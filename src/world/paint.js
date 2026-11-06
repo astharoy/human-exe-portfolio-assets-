@@ -521,39 +521,73 @@ export const OBJECTS = {
   },
 
   desk: {
-    size: [380, 130],
+    size: [380, 100],
     draw(ctx, w, h) {
+      // desktop
       shadow(ctx, 14, 6, 0.18);
-      fillRR(ctx, 0, 0, w, 18, 6, C.beige);
+      fillRR(ctx, 0, 0, w, 16, 6, C.beige);
       noShadow(ctx);
       ctx.fillStyle = C.beigeDeep;
-      ctx.fillRect(0, 14, w, 6);
-      // drawer unit (left) — the "tools" side
-      fillRR(ctx, 14, 20, 110, h - 20, 6, C.cream);
+      ctx.fillRect(0, 13, w, 5);
+      // legs on the open (left) side, where the chair tucks in
+      ctx.fillStyle = C.beigeDeep;
+      ctx.fillRect(14, 18, 10, h - 18);
+      // drawer unit (right) — the "tools" side
+      fillRR(ctx, w - 128, 18, 116, h - 18, 6, C.cream);
       for (let i = 0; i < 3; i++) {
         ctx.strokeStyle = C.beigeDeep;
         ctx.lineWidth = 2;
-        rr(ctx, 22, 28 + i * 33, 94, 27, 4);
+        rr(ctx, w - 120, 25 + i * 25, 100, 20, 4);
         ctx.stroke();
-        fillRR(ctx, 58, 38 + i * 33, 22, 6, 3, C.lavenderDeep);
+        fillRR(ctx, w - 81, 32 + i * 25, 22, 5, 2.5, C.lavenderDeep);
       }
-      ctx.fillStyle = C.beigeDeep;
-      ctx.fillRect(w - 24, 20, 12, h - 20);
-      // pen cup + ruler on top-left
-      fillRR(ctx, 30, -34, 26, 34, 5, C.mint);
+      // pen cup with pencils and a ruler, right side of the desktop
+      fillRR(ctx, w - 70, -34, 26, 34, 5, C.mint);
       ctx.strokeStyle = C.charcoal;
       ctx.lineWidth = 2.5;
       ctx.beginPath();
-      ctx.moveTo(36, -34);
-      ctx.lineTo(32, -52);
-      ctx.moveTo(44, -34);
-      ctx.lineTo(46, -56);
-      ctx.moveTo(50, -34);
-      ctx.lineTo(56, -48);
+      ctx.moveTo(w - 64, -34);
+      ctx.lineTo(w - 68, -52);
+      ctx.moveTo(w - 56, -34);
+      ctx.lineTo(w - 54, -56);
+      ctx.moveTo(w - 50, -34);
+      ctx.lineTo(w - 44, -48);
+      ctx.stroke();
+      // small desk lamp glow + mug
+      fillRR(ctx, w - 30, -16, 16, 16, 4, C.pink);
+      ctx.strokeStyle = C.pink;
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.arc(w - 14, -8, 4, -Math.PI / 2, Math.PI / 2);
       ctx.stroke();
     },
     // the pen cup draws above the desktop
     padTop: 60,
+  },
+
+  chair: {
+    size: [80, 120],
+    draw(ctx, w, h) {
+      // seat surface sits exactly 40 units above the bottom (SEAT_HEIGHT)
+      ctx.fillStyle = C.charcoal;
+      ctx.fillRect(w / 2 - 3, h - 36, 6, 30);
+      fillRR(ctx, w / 2 - 26, h - 8, 52, 6, 3, C.charcoal);
+      ctx.fillStyle = '#4a4550';
+      [w / 2 - 24, w / 2 + 20].forEach((x) => {
+        ctx.beginPath();
+        ctx.arc(x + 2, h - 3, 3, 0, Math.PI * 2);
+        ctx.fill();
+      });
+      // backrest (behind her, on the left since she faces right)
+      ctx.fillStyle = C.lavenderDeep;
+      ctx.fillRect(12, 18, 6, h - 58);
+      shadow(ctx, 8, 3, 0.18);
+      fillRR(ctx, 4, 6, 20, 54, 9, C.lavender);
+      fillRR(ctx, 6, h - 46, w - 12, 12, 6, C.lavender);
+      noShadow(ctx);
+      ctx.fillStyle = 'rgba(255,255,255,0.3)';
+      ctx.fillRect(12, h - 44, w - 28, 3);
+    },
   },
 
   laptop: {
@@ -887,15 +921,88 @@ export const OBJECTS = {
   },
 
   bench: {
-    size: [240, 80],
+    size: [240, 60],
     draw(ctx, w, h) {
+      // seat surface 40 units above the bottom (SEAT_HEIGHT)
       shadow(ctx, 12, 5, 0.18);
-      fillRR(ctx, 0, 0, w, 22, 10, C.pink);
+      fillRR(ctx, 0, h - 52, w, 16, 8, C.pink);
       noShadow(ctx);
-      fillRR(ctx, 0, 18, w, 12, 6, C.beigeDeep);
+      ctx.fillStyle = 'rgba(255,255,255,0.35)';
+      ctx.fillRect(10, h - 49, w - 20, 3);
+      fillRR(ctx, 0, h - 38, w, 8, 4, C.beigeDeep);
       ctx.fillStyle = C.brown;
-      ctx.fillRect(20, 30, 10, h - 30);
-      ctx.fillRect(w - 30, 30, 10, h - 30);
+      ctx.fillRect(20, h - 30, 10, 30);
+      ctx.fillRect(w - 30, h - 30, 10, 30);
+      // a cushion
+      fillRR(ctx, 30, h - 66, 46, 18, 8, C.butter);
+    },
+  },
+
+  shelf: {
+    size: [240, 110],
+    draw(ctx, w, h) {
+      // a floating wall shelf with books, a tiny plant and a framed sketch
+      shadow(ctx, 10, 5, 0.18);
+      fillRR(ctx, 0, h - 14, w, 12, 5, C.beige);
+      noShadow(ctx);
+      ctx.fillStyle = C.beigeDeep;
+      ctx.fillRect(18, h - 4, 8, 4);
+      ctx.fillRect(w - 26, h - 4, 8, 4);
+      const books = [[16, 54, C.lavender], [30, 60, C.pink], [44, 48, C.mint], [56, 58, C.butter]];
+      books.forEach(([x, bh, c]) => fillRR(ctx, x, h - 14 - bh, 12, bh, 2, c));
+      ctx.save();
+      ctx.translate(86, h - 14);
+      ctx.rotate(-0.18);
+      fillRR(ctx, 0, -50, 12, 50, 2, C.peach);
+      ctx.restore();
+      // framed sketch leaning on the wall
+      fillRR(ctx, 112, h - 86, 64, 72, 4, C.brown);
+      fillRR(ctx, 118, h - 80, 52, 60, 2, C.cream);
+      ctx.strokeStyle = C.lavenderDeep;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(124, h - 34);
+      ctx.bezierCurveTo(134, h - 66, 150, h - 28, 164, h - 60);
+      ctx.stroke();
+      // small plant
+      fillRR(ctx, 196, h - 36, 24, 22, 5, C.peachDeep);
+      ctx.fillStyle = C.mintDeep;
+      for (let i = 0; i < 5; i++) {
+        ctx.beginPath();
+        ctx.ellipse(208 + (i - 2) * 5, h - 46 - (i % 2) * 5, 4, 11, (i - 2) * 0.35, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    },
+  },
+
+  poster: {
+    size: [130, 170],
+    draw(ctx, w, h, o) {
+      // pinned abstract poster in the room's palette
+      ctx.save();
+      ctx.translate(w / 2, h / 2);
+      ctx.rotate(o.tilt || -0.03);
+      shadow(ctx, 10, 4, 0.16);
+      fillRR(ctx, -w / 2 + 6, -h / 2 + 6, w - 12, h - 12, 4, '#fffaf2');
+      noShadow(ctx);
+      ctx.fillStyle = o.a || C.lavender;
+      ctx.beginPath();
+      ctx.arc(-10, -22, 34, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = o.b || C.butter;
+      ctx.beginPath();
+      ctx.moveTo(-40, 50);
+      ctx.lineTo(10, -6);
+      ctx.lineTo(44, 50);
+      ctx.closePath();
+      ctx.fill();
+      ctx.fillStyle = o.c || C.pink;
+      fillRR(ctx, 4, 16, 34, 34, 6, o.c || C.pink);
+      ctx.fillStyle = C.pinkDeep;
+      ctx.beginPath();
+      ctx.arc(0, -h / 2 + 12, 4, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
     },
   },
 

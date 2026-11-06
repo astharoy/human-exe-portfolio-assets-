@@ -25,8 +25,18 @@ export function initHud() {
     if (isNew) gsap.fromTo(counter.parentElement, { scale: 1.18 }, { scale: 1, duration: dur(0.4), ease: 'back.out(3)' });
   });
 
+  /* ---------- room transition curtain ---------- */
+  const curtain = $('#curtain');
+  bus.on('leaving', ({ room }) => {
+    curtain.querySelector('.curtain__label').innerHTML = `<span class="curtain__num">${esc(room.num)}</span><span class="curtain__name">${esc(room.name)}</span>`;
+    gsap.killTweensOf(curtain);
+    gsap.fromTo(curtain, { opacity: 0 }, { opacity: 1, duration: dur(0.32), ease: 'power2.in' });
+    gsap.fromTo(curtain.querySelector('.curtain__label'), { y: 14, scale: 0.96 }, { y: 0, scale: 1, duration: dur(0.4), ease: 'back.out(2)' });
+  });
+
   /* ---------- room arrival ---------- */
-  bus.on('room', ({ room }) => {
+  bus.on('room', ({ room, arrivedBy }) => {
+    if (Number(getComputedStyle(curtain).opacity) > 0) gsap.to(curtain, { opacity: 0, duration: dur(0.45), delay: 0.12, ease: 'power2.out' });
     roomChip.innerHTML = `<span class="chip__num">${esc(room.num)}</span> ${esc(room.name)}`;
     document.title = `${room.name} · DIGITAL ME`;
     titleCard.innerHTML = `<span class="title-card__num">${esc(room.num)}</span><span class="title-card__name">${esc(room.name)}</span><span class="title-card__purpose">${esc(room.purpose)}</span>`;
@@ -48,6 +58,8 @@ export function initHud() {
         prompt.hidden = false;
       }
       prompt.style.transform = `translate(${Math.round(p.x)}px, ${Math.round(p.y)}px) translate(-50%, -100%)`;
+      // step aside while she's speaking so the two labels never overlap
+      prompt.style.opacity = bubble.hidden ? '1' : '0';
     } else if (promptId) {
       promptId = null;
       prompt.hidden = true;

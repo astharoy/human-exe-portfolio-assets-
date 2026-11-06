@@ -126,10 +126,10 @@ export const CLIPS = {
     return {
       ...base,
       bodyY: Math.sin(g * 1.6) * 0.6,
-      shF: 0.08 + k * 0.27,
-      elF: 0.12 + k * 2.8 + tap,
-      shB: -0.1 + k * 0.55,
-      elB: 0.12 + k * 1.25,
+      shF: 0.08 + k * 0.22,
+      elF: 0.12 + k * 2.83 + tap,
+      shB: -0.1 + k * 0.2,
+      elB: 0.12 + k * 1.5,
       headTilt: -0.12 * k,
       eyes: k > 0.5 ? 'up' : 'open',
       look: [0.4 * k, -1 * k],
@@ -177,7 +177,77 @@ export const CLIPS = {
       hairSwing: Math.sin(t * 7) * 0.3,
     };
   },
+
+  /** Seated on a chair or bench (seat height ≈ SEAT_HEIGHT above the floor). */
+  sit(t, g) {
+    const k = ease(t / 0.3);
+    const br = Math.sin(g * 1.8);
+    return {
+      ...base,
+      seated: k > 0.5,
+      bodyY: br * 0.5,
+      lean: -0.04 * k,
+      hipF: 0.04 + k * 1.46,
+      kneeF: k * 1.5,
+      hipB: -0.04 + k * 1.5,
+      kneeB: k * 1.46,
+      footF: -0.05 * k,
+      footB: -0.05 * k,
+      shF: 0.08 + k * 0.62,
+      elF: 0.12 + k * 0.1,
+      shB: -0.1 + k * 0.7,
+      elB: 0.12 + k * 0.1,
+      headTilt: Math.sin(g * 0.6) * 0.03,
+      look: [Math.sin(g * 0.4) > 0.7 ? 0.8 : 0, 0],
+      blink: blinkAt(g),
+      hairSwing: Math.sin(g * 1.1) * 0.1,
+    };
+  },
+
+  /** Seated, typing at a laptop. */
+  work(t, g) {
+    const seat = CLIPS.sit(Math.max(t, 0.3), g);
+    const k = ease(t / 0.4);
+    const tp = Math.sin(t * 17);
+    return {
+      ...seat,
+      lean: 0.06 * k,
+      shF: 0.7 + k * 0.4,
+      elF: 0.22 + k * 0.38 + tp * 0.06 * k,
+      shB: 0.6 + k * 0.5,
+      elB: 0.22 + k * 0.36 - tp * 0.06 * k,
+      handF: k > 0.5 ? 'type' : 'rest',
+      handB: k > 0.5 ? 'type' : 'rest',
+      headTilt: 0.1 * k + Math.sin(t * 2.2) * 0.015,
+      eyes: k > 0.5 ? 'focus' : 'open',
+      look: [0.6, 0.6],
+      mouth: 'neutral',
+      blink: blinkAt(g + 1.1),
+    };
+  },
+
+  laugh(t, g) {
+    const k = ease(t / 0.18);
+    const sh = Math.sin(t * 15);
+    return {
+      ...base,
+      bodyY: -Math.abs(sh) * 1.8 * k,
+      lean: (-0.07 + sh * 0.02) * k,
+      headTilt: (-0.14 + sh * 0.04) * k,
+      shF: 0.08 - k * 0.38,
+      elF: 0.12 + k * 1.45,
+      shB: -0.1 - k * 0.15,
+      elB: 0.12 + k * 1.2,
+      eyes: 'happy',
+      mouth: 'laugh',
+      hairSwing: sh * 0.25 * k,
+      hairLift: Math.abs(sh) * 0.2 * k,
+    };
+  },
 };
+
+/** Seat surface height above the floor that the sit/work clips are drawn for. */
+export const SEAT_HEIGHT = 40;
 
 /** Duration of one-shot clips; null = loops until changed. */
 export const CLIP_LENGTH = {
@@ -189,4 +259,7 @@ export const CLIP_LENGTH = {
   think: null,
   interact: 0.8,
   celebrate: 1.8,
+  sit: null,
+  work: null,
+  laugh: 1.5,
 };

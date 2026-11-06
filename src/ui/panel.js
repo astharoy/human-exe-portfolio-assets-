@@ -25,7 +25,7 @@ export function initPanel() {
       portrait.hidden = false;
       portrait.querySelector('img').src = view.portrait;
     } else portrait.hidden = true;
-    const back = backTo ? `<button type="button" class="panel__back" data-back>← All projects</button>` : '';
+    const back = backTo ? `<button type="button" class="panel__back" data-back>← Back</button>` : '';
     body.innerHTML = back + view.html;
     body.scrollTop = 0;
   }

@@ -43,4 +43,14 @@ export function renderFallback(root) {
       <a class="btn" href="#">← Back to the interactive world</a>
     </header>
     ${rooms}`;
+  // project links inside topics jump to the project card on this page
+  root.addEventListener('click', (e) => {
+    const a = e.target.closest('[data-scroll]');
+    if (!a) return;
+    e.preventDefault();
+    const el = document.getElementById(a.dataset.scroll);
+    el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    el?.setAttribute('tabindex', '-1');
+    el?.focus({ preventScroll: true });
+  });
 }
