@@ -17,7 +17,18 @@ The character rig preview page (a development tool, not in the build): http://lo
 
 ## Deploy (Vercel)
 
-`vercel.json` is set up for the Vite framework preset (`npm run build` → `dist`). Import the repository in Vercel and deploy; no environment variables are needed.
+`vercel.json` is set up for the Vite framework preset (`npm run build` → `dist`). No environment variables are needed.
+
+| Vercel setting | Value |
+|---|---|
+| Framework Preset | Vite |
+| Root Directory | *(empty — the repository root)* |
+| Build Command | `npm run build` |
+| Output Directory | `dist` |
+| Install Command | `npm install` (default) |
+| Production Branch | the branch that contains the app (see below) |
+
+**Production branch matters.** Vercel builds the project's *production branch* for the main URL. The app (this README, `package.json`, `index.html`, `src/`) currently lives on `claude/tender-gauss-rgzlpn`. `main` holds only the original assets, so deploying `main` has nothing to build or serve and returns a 404. Either merge the app into `main`, or set Vercel → Project → Settings → Environments → Production → Branch to the app branch, then redeploy.
 
 ## Where things live
 
