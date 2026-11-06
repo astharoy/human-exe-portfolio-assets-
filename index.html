@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>DIGITAL ME · Aastha</title>
+    <meta name="description" content="DIGITAL ME — an interactive 2D world by Aastha. Walk through five rooms to explore her projects, work and curiosity." />
+    <meta name="theme-color" content="#fbf3e4" />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%23b9a7d6'/%3E%3Crect x='12' y='24' width='17' height='14' rx='4' fill='none' stroke='%23241f2a' stroke-width='4'/%3E%3Crect x='35' y='24' width='17' height='14' rx='4' fill='none' stroke='%23241f2a' stroke-width='4'/%3E%3Cpath d='M29 30h6' stroke='%23241f2a' stroke-width='4'/%3E%3C/svg%3E" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&family=Fraunces:opsz,wght@9..144,500;9..144,600&display=swap" rel="stylesheet" />
+  </head>
+  <body>
+    <a class="skip-link" href="#list">Skip the game: view everything as a list</a>
+
+    <div id="world">
+      <div id="game" aria-hidden="true"></div>
+
+      <header class="hud" aria-label="World controls">
+        <div class="hud__left">
+          <span class="brand">DIGITAL&nbsp;ME</span>
+          <span class="chip" id="room-chip" aria-live="polite"></span>
+        </div>
+        <div class="hud__right">
+          <span class="chip chip--count" title="Things discovered"><span aria-hidden="true">✦</span> <span id="counter"></span></span>
+          <button type="button" class="hud-btn" id="map-btn" aria-haspopup="dialog">Map <kbd>M</kbd></button>
+          <button type="button" class="hud-btn" id="motion-btn" aria-pressed="false" title="Reduce motion">Calm mode</button>
+          <a class="hud-btn" href="#list">List view</a>
+        </div>
+      </header>
+
+      <div id="title-card" class="title-card" aria-hidden="true"></div>
+      <div id="prompt" class="prompt" hidden></div>
+      <div id="bubble" class="bubble" role="status" aria-live="polite" hidden></div>
+
+      <div class="touch-controls" aria-hidden="true">
+        <div class="touch-controls__move">
+          <button type="button" data-touch="left" tabindex="-1" aria-label="Walk left">◀</button>
+          <button type="button" data-touch="right" tabindex="-1" aria-label="Walk right">▶</button>
+        </div>
+        <div class="touch-controls__act">
+          <button type="button" data-touch="action" tabindex="-1" aria-label="Interact">✦</button>
+          <button type="button" data-touch="jump" tabindex="-1" aria-label="Jump">⤒</button>
+        </div>
+      </div>
+
+      <div id="panel" class="overlay" role="dialog" aria-modal="true" aria-labelledby="panel-title" hidden>
+        <div class="panel__card">
+          <button type="button" class="panel__close" aria-label="Close">✕</button>
+          <div class="panel__head">
+            <div class="panel__portrait" hidden><img alt="Aastha's illustrated digital avatar, from the official character sheet" /></div>
+            <div>
+              <p class="panel__kicker"></p>
+              <h2 id="panel-title"></h2>
+            </div>
+          </div>
+          <div class="panel__body"></div>
+        </div>
+      </div>
+
+      <div id="map" class="overlay" role="dialog" aria-modal="true" aria-labelledby="map-title" hidden>
+        <div class="map__card">
+          <button type="button" class="map__close panel__close" aria-label="Close map">✕</button>
+          <p class="panel__kicker">Five rooms, all connected</p>
+          <h2 id="map-title">Map</h2>
+          <ol id="map-list" class="map-list"></ol>
+          <div class="controls-help">
+            <h3>Controls</h3>
+            <ul>
+              <li><kbd>←</kbd><kbd>→</kbd> or <kbd>A</kbd><kbd>D</kbd> walk</li>
+              <li><kbd>↑</kbd> <kbd>W</kbd> or <kbd>Space</kbd> jump</li>
+              <li><kbd>E</kbd> or <kbd>Enter</kbd> open what glows</li>
+              <li>Click or tap an object to walk to it</li>
+              <li><kbd>M</kbd> map · <kbd>Esc</kbd> close</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div id="intro" class="intro">
+        <div class="intro__card">
+          <img class="intro__portrait" src="/character/portrait.webp" alt="Aastha's illustrated digital avatar" width="220" height="280" />
+          <div>
+            <p class="intro__eyebrow">An interactive 2D world</p>
+            <h1 class="intro__title">DIGITAL&nbsp;ME</h1>
+            <p class="intro__lede">Five rooms. Real projects. One curious explorer: you.</p>
+            <button type="button" class="btn btn--primary" id="start-btn">Step inside</button>
+            <p class="intro__help intro__help--keys"><kbd>←</kbd><kbd>→</kbd> walk · <kbd>Space</kbd> jump · <kbd>E</kbd> open · or click things</p>
+            <p class="intro__help intro__help--touch">◀ ▶ walk · ⤒ jump · tap anything that glows</p>
+            <a class="intro__alt" href="#list">Prefer reading? See everything as a list</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <main id="list" class="list-view" hidden tabindex="-1"></main>
+
+    <noscript>
+      <main class="list-view">
+        <h1>DIGITAL ME</h1>
+        <p>This interactive world needs JavaScript. The project evidence is still available:</p>
+        <ul>
+          <li><a href="/evidence/lostinn-cms-walkthrough.mp4">The Lost Inn — CMS walkthrough (video, in progress)</a></li>
+          <li><a href="/evidence/resolveai-automation-workflow.png">ResolveAI — automation workflow (image, prototype)</a></li>
+          <li><a href="/evidence/reviewsetu-walkthrough.mp4">ReviewSetu — walkthrough (video, prototype, not launched)</a></li>
+          <li>Dispute SLA Analytics — completed analysis of 2,770 synthetic records in Excel and SQL; 91.2% of closed cases were within SLA.</li>
+        </ul>
+      </main>
+    </noscript>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

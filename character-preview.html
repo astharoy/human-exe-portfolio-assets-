@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Character Rig Preview</title>
+<style>
+  body { margin: 0; font: 14px/1.4 system-ui, sans-serif; background: #f6efe6; color: #2e2a33; padding: 24px; }
+  h1 { font-size: 20px; margin: 0 0 4px; }
+  p { margin: 0 0 16px; max-width: 70ch; }
+  .row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }
+  .row b { width: 90px; }
+  canvas { background: #ece2f3; border-radius: 10px; }
+  #live { background: #e8dcf0; }
+</style>
+</head>
+<body>
+<h1>Aastha rig — animation preview</h1>
+<p>Each row samples one clip over time (left to right). The last canvas plays the clip live. This page is a development tool and is not part of the visitor build.</p>
+<div id="rows"></div>
+<script type="module" src="/src/preview.js"></script>
+</body>
+</html>
